@@ -6,6 +6,10 @@
 // TODO:
 // alert('( ' + i + ', ' + j + ', ' + k + ')');
 
+    const SIZES = {
+    hint:28
+};
+
 EinsteinController = function (size) {
     this.size = size || 6;
     this.root = $('einstein-panel');
@@ -32,8 +36,8 @@ Object.extend(EinsteinController.prototype, {
             }
         })(this);
 
-        $('hidden').onclick = (function(scope){
-            return function(event) {
+        $('hidden').onclick = (function (scope) {
+            return function (event) {
                 var item;
 
                 item = scope.ehr.down();
@@ -91,7 +95,7 @@ Object.extend(EinsteinController.prototype, {
             } else if ('under' === rule.type()) {
                 container = Element.extend(document.createElement('div'));
                 this.evr.insert(container);
-                container.setStyle({'border': '1px solid', 'float': 'left', padding: '1px', margin: '2px'});
+                container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
                 container.oncontextmenu = (function (element) {
                     return function (event) {
                         element.toggle();
@@ -99,10 +103,10 @@ Object.extend(EinsteinController.prototype, {
                     }
                 })(container);
                 rule.draw(container);
-            } else if (['near', 'direction'].indexOf(rule.type()) > -1) {
+            } else if (['near', 'direction', 'between'].indexOf(rule.type()) > -1) {
                 container = Element.extend(document.createElement('div'));
                 this.ehr.insert(container);
-                container.setStyle({'border': '1px solid', 'float': 'left', padding: '1px', margin: '2px'});
+                container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
                 container.oncontextmenu = (function (element) {
                     return function (event) {
                         element.toggle();
@@ -331,25 +335,25 @@ Object.extend(ViewController.prototype, {
 
             var tr = Element.extend(document.createElement('tr'));
             this.root.insert(tr);
-            tr.setStyle({height:'104px'});
+            tr.setStyle({height:(3 * SIZES.hint + 2 * 1) + 'px'});
             for (var j = 0; j < 6; ++j) {
                 this.hints[i][j] = {items:[]};
 
                 var td = Element.extend(document.createElement('td'));
                 tr.insert(td);
-                td.setStyle({width:'102px'});
+                td.setStyle({width:(3 * SIZES.hint) + 'px'});
                 td.align = 'center';
 
                 var img;
                 img = this.cells[i][j] = Element.extend(document.createElement('img'));
                 td.insert(img);
 
-                img.setStyle({width:'102px', height:'102px'});
+                img.setStyle({width:(3 * SIZES.hint) + 'px', height:(3 * SIZES.hint) + 'px'});
                 img.hide();
 
                 var itable = this.hints[i][j].view = Element.extend(document.createElement('table'));
                 td.insert(itable);
-                itable.setStyle({width:'102px'});
+                itable.setStyle({width:(3 * SIZES.hint) + 'px'});
                 itable.cellSpacing = 0;
                 itable.cellPadding = 0;
                 var itbody = Element.extend(document.createElement('tbody'));
@@ -358,16 +362,16 @@ Object.extend(ViewController.prototype, {
                 var itr, itd, iimg, k;
                 itr = Element.extend(document.createElement('tr'));
                 itbody.insert(itr);
-                itr.setStyle({height:'34px'});
+                itr.setStyle({height:(SIZES.hint + 2 * 1) + 'px'});
                 for (k = 0; k < 3; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', cursor:'pointer', border:'1px solid'});
+                    itd.setStyle({width:(SIZES.hint) + 'px', cursor:'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
 
-                    iimg.setStyle({width:'32px', height:'32px'});
+                    iimg.setStyle({width:(SIZES.hint) + 'px', height:(SIZES.hint) + 'px'});
                     iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
@@ -383,16 +387,16 @@ Object.extend(ViewController.prototype, {
                 }
                 itr = Element.extend(document.createElement('tr'));
                 itbody.insert(itr);
-                itr.setStyle({height:'34px'});
+                itr.setStyle({height:(SIZES.hint + 2 * 1) + 'px'});
                 for (k = 3; k < 6; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', cursor:'pointer', border:'1px solid'});
+                    itd.setStyle({width:(SIZES.hint) + 'px', cursor:'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
 
-                    iimg.setStyle({width:'32px', height:'32px'});
+                    iimg.setStyle({width:(SIZES.hint) + 'px', height:(SIZES.hint) + 'px'});
                     iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
@@ -423,7 +427,7 @@ Object.extend(ViewController.prototype, {
 //                this.hints[i][j].view.hide();
                 for (k = 0; k < 6; ++k) {
                     this.hints[i][j].items[k].show();
-                    this.hints[i][j].items[k].up().setStyle({width:'32px'});
+                    this.hints[i][j].items[k].up().setStyle({width:(SIZES.hint) + 'px'});
                     this.hints[i][j].items[k].up().setStyle({border:'1px solid black'});
 
 //                    // todo: it's debug
@@ -462,7 +466,7 @@ Object.extend(ViewController.prototype, {
     },
 
     onExclude:function (i, j, k) {
-        this.hints[i][j].items[k].up().setStyle({width:'34px', border:'0'});
+        this.hints[i][j].items[k].up().setStyle({width:(SIZES.hint + 2 * 1) + 'px', border:'0'});
         this.hints[i][j].items[k].hide();
     },
 
@@ -578,7 +582,6 @@ Object.extend(UnderRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-//        img.setStyle({width:'102px', height:'102px'});
         img.setStyle({width:'48px', height:'48px'});
         img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
 
@@ -638,7 +641,7 @@ Object.extend(NearRule.prototype, {
             return false;
         }
         return ((rule.row1 === this.row1) && (rule.col1 === this.col1) && (rule.row2 === this.row2) && (rule.col2 === this.col2)) ||
-            ((rule.row2 === this.row1) && (rule.col2 === this.col1) && (rule.row1 === this.row2) && (rule.col1 === this.col2)) ;
+               ((rule.row2 === this.row1) && (rule.col2 === this.col1) && (rule.row1 === this.row2) && (rule.col1 === this.col2));
     },
     draw    :function (box) {
         var table = Element.extend(document.createElement('table'));
@@ -798,9 +801,11 @@ Object.extend(BetweenRule.prototype, {
 
         this.col = 1 + Math.ceil(Math.random() * (data.getSize() - 2)) % (data.getSize() - 2);
 
+        var delta = Math.random() < 0.5 ? 1 : -1;
+
         this.value = data.getValue(this.row, this.col);
-        this.value1 = data.getValue(this.row1, this.col);
-        this.value2 = data.getValue(this.row2, this.col);
+        this.value1 = data.getValue(this.row1, this.col - delta);
+        this.value2 = data.getValue(this.row2, this.col + delta);
     },
     apply   :function (game) {
         var changed = false;
@@ -860,7 +865,51 @@ Object.extend(BetweenRule.prototype, {
         if (rule.type() !== this.type()) {
             return false;
         }
-        return (rule.row2 === this.row2) && (rule.row === this.row) && (rule.row1 === this.row1) && (rule.col === this.col);
+        return (rule.row === this.row) && (rule.col === this.col) &&
+               (((rule.row1 === this.row1) && (rule.row2 === this.row2)) || ((rule.row1 === this.row2) && (rule.row2 === this.row1)));
+    },
+    draw    :function (box) {
+        var table = Element.extend(document.createElement('table'));
+        box.insert(table);
+        table.cellPadding = 0;
+        table.cellSpacing = 0;
+
+        var tbody = Element.extend(document.createElement('tbody'));
+        table.insert(tbody);
+        var tr, td, img;
+
+        tr = Element.extend(document.createElement('tr'));
+        tbody.insert(tr);
+
+        td = Element.extend(document.createElement('td'));
+        tr.insert(td);
+        td.align = 'center';
+
+        img = Element.extend(document.createElement('img'));
+        td.insert(img);
+
+        img.setStyle({width:'48px', height:'48px'});
+        img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
+
+        td = Element.extend(document.createElement('td'));
+        tr.insert(td);
+        td.align = 'center';
+
+        img = Element.extend(document.createElement('img'));
+        td.insert(img);
+
+        img.setStyle({width:'48px', height:'48px'});
+        img.src = 'images/' + (this.row + 1) + (this.value + 1) + '.gif';
+
+        td = Element.extend(document.createElement('td'));
+        tr.insert(td);
+        td.align = 'center';
+
+        img = Element.extend(document.createElement('img'));
+        td.insert(img);
+
+        img.setStyle({width:'48px', height:'48px'});
+        img.src = 'images/' + (this.row2 + 1) + (this.value2 + 1) + '.gif';
     }
 });
 
@@ -885,7 +934,7 @@ Rule = {
             case 11:
             case 12:
             case 13:
-//                return new BetweenRule(data);
+                return new BetweenRule(data);
             default:
                 return Rule.generate(data);
         }
