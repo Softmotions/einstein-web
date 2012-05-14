@@ -58,7 +58,7 @@ EinsteinController.prototype = {
                 for (k = 0; k < 3; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', border:'1px solid'});
+                    itd.setStyle({width:'32px', cursor: 'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
@@ -83,7 +83,7 @@ EinsteinController.prototype = {
                 for (k = 3; k < 6; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', border:'1px solid'});
+                    itd.setStyle({width:'32px', cursor: 'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
@@ -107,9 +107,9 @@ EinsteinController.prototype = {
     },
 
     generate:function () {
-        this.data = [];
+        this.data = {count:6 * 6, field:[]};
         for (var i = 0; i < 6; ++i) {
-            this.data[i] = [];
+            this.data.field[i] = [];
 
             var tmp = [1, 2, 3, 4, 5, 6];
             while (tmp.length > 0) {
@@ -117,7 +117,7 @@ EinsteinController.prototype = {
                 var data = {
                     value:item = tmp.splice(Math.random() * tmp.length, 1)[0],
                     items:{count:6, 1:true, 2:true, 3:true, 4:true, 5:true, 6:true}};
-                this.data[i].push(data);
+                this.data.field[i].push(data);
             }
         }
     },
@@ -133,14 +133,14 @@ EinsteinController.prototype = {
 
 //                //todo: it's debug
 //                this.cells[i][j].show();
-//                this.cells[i][j].src = 'images/' + (i+1) + (this.data[i][j].value) + '.gif';
+//                this.cells[i][j].src = 'images/' + (i+1) + (this.data.field[i][j].value) + '.gif';
 //                this.hints[i][j].view.hide();
                 for (k = 0; k < 6; ++k) {
                     this.hints[i][j].items[k].show();
                     this.hints[i][j].items[k].up().setStyle({width:'32px'});
 
                     // todo: it's debug
-                    this.hints[i][j].items[k].up().setStyle({border:'1px solid ' + ((k + 1) == this.data[i][j].value ? 'red' : 'black')});
+                    this.hints[i][j].items[k].up().setStyle({border:'1px solid ' + ((k + 1) == this.data.field[i][j].value ? 'red' : 'black')});
                 }
             }
         }
@@ -158,16 +158,16 @@ EinsteinController.prototype = {
 
     hintMouseDown:function (i, j, k, action) {
         // TODO:
-        var data = this.data[i][j];
+        var data = this.data.field[i][j];
         var hintf = this.hints[i][j].view;
         var hint = this.hints[i][j].items[k];
 
-        if (!data.items[(k+1)]) {
+        if (!data.items[(k + 1)]) {
             return;
         }
 
         if (!action) { // right!
-            if(data.value == (k+1)) {
+            if (data.value == (k + 1)) {
                 this.status = false;
             }
             --data.items.count;
@@ -184,8 +184,14 @@ EinsteinController.prototype = {
                 }
             }
         } else {
-            if(data.value != (k+1)) {
+            if (data.value != (k + 1)) {
                 this.status = false;
+            } else {
+                --this.data.count;
+            }
+            data.count = 1;
+            for (var t = 0; t < 6; ++t) {
+                data.items[(t + 1)] = (t == k);
             }
 
             hintf.hide();
@@ -201,9 +207,13 @@ EinsteinController.prototype = {
         }
     },
 
-    checkField:function() {
+    checkField:function () {
         if (!this.status) {
-            alert('stop game');
+            alert('Fail =(');
+        }
+        if (this.data.count == 0) {
+            alert('Victory =)');
+            this.status = false;
         }
     }
 };
