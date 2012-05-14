@@ -3,18 +3,188 @@
  * @author Tyutyunkov VE
  */
 
-EinsteinController = function () {
+// TODO:
+// alert('( ' + i + ', ' + j + ', ' + k + ')');
+
+EinsteinController = function (size) {
+    this.size = size || 6;
     this.root = $('einstein-panel');
 
-    this.buildField();
+    this.initField();
     this.initButtons();
 
-    this.generate();
-
-    this.resetField();
+    this.newGame();
 };
 
 EinsteinController.prototype = {
+    initField:function () {
+        this.vc = new ViewController(this.size);
+    },
+
+    initButtons:function () {
+        $('new').onclick = (function (scope) {
+            return function (event) {
+                scope.newGame();
+                return false;
+            }
+        })(this);
+    },
+
+    newGame:function () {
+        this.data = new DataField(this.size);
+        this.gc = new GameController(this.data);
+        this.vc.setGameController(this.gc);
+        this.vc.resetField();
+        this.gc.start();
+    }
+};
+
+DataField = function (size) {
+    this.size = size;
+
+    this.generate();
+};
+
+DataField.prototype = {
+    generate:function () {
+        this.data = [];
+        for (var i = 0; i < 6; ++i) {
+            this.data[i] = [];
+
+            var tmp = [];
+            for (var j = 0; j < this.size; ++j) {
+                tmp.push(j);
+            }
+
+            while (tmp.length > 0) {
+                this.data[i].push(tmp.splice(Math.random() * tmp.length, 1)[0]);
+            }
+        }
+    },
+
+    getSize:function () {
+        return this.size;
+    },
+
+    getValue:function (i, j) {
+        return this.data[i][j];
+    }
+};
+
+GameController = function (data) {
+    this.data = data;
+    this.size = this.data.getSize();
+
+    this.init();
+};
+
+GameController.prototype = {
+    init:function () {
+        this.count = this.size * this.size;
+        this.field = [];
+        for (var i = 0; i < this.size; ++i) {
+            this.field[i] = [];
+            for (var j = 0; j < this.size; ++j) {
+                var items;
+                this.field[i][j] = {
+                    posible:this.size,
+                    items  :items = {},
+                    defined:null
+                };
+                for (var k = 0; k < this.size; ++k) {
+                    items[k] = true;
+                }
+            }
+        }
+    },
+
+    isPosible:function (i, j, k) {
+        return !this.isDefined(i, j) && this.field[i][j].items[k];
+    },
+
+    isDefined:function (i, j) {
+        return this.field[i][j].defined !== null;
+    },
+
+    getDefined:function (i, j) {
+        return this.field[i][j].defined;
+    },
+
+    set:function (i, j, k) {
+        if (!this.isPosible(i, j, k)) {
+            return;
+        }
+
+        if (this.data.getValue(i, j) != k) {
+            this.status = 3;
+        }
+
+        this.field[i][j].defined = k;
+        for (var h = 0; h < this.size; ++h) {
+            this.exclude(i, h, k);
+        }
+        if (this.onSet) {
+            this.onSet(i, j, k);
+        }
+    },
+
+    exclude:function (i, j, k) {
+        if (!this.isPosible(i, j, k)) {
+            return;
+        }
+
+        if (this.data.getValue(i, j) === k) {
+            this.status = 3;
+        }
+
+        --this.field[i][j].posible;
+        this.field[i][j].items[k] = false;
+        if (this.onExclude) {
+            this.onExclude(i, j, k);
+        }
+        if (this.field[i][j].posible == 1) {
+            for (var h = 0; h < this.size; ++h) {
+                if (this.field[i][j].items[h]) {
+                    this.set(i, j, h);
+                    break;
+                }
+            }
+        }
+    },
+
+    setSetListener:function (listener) {
+        this.onSet = listener;
+    },
+
+    setExcludeListener:function (listener) {
+        this.onExclude = listener;
+    },
+
+    isActive:function () {
+        return this.status === 1;
+    },
+
+    isFail:function () {
+        return this.status === 3;
+    },
+
+    isVictory:function () {
+        return this.status === 2;
+    },
+
+    start: function() {
+        this.status = 1;
+    }
+};
+
+ViewController = function (size) {
+    this.size = size;
+    this.root = $('einstein-panel');
+
+    this.buildField();
+};
+
+ViewController.prototype = {
     buildField:function () {
         this.cells = [];
         this.hints = [];
@@ -36,6 +206,7 @@ EinsteinController.prototype = {
                 var td = Element.extend(document.createElement('td'));
                 tr.insert(td);
                 td.setStyle({width:'102px'});
+                td.align = 'center';
 
                 var img;
                 img = this.cells[i][j] = Element.extend(document.createElement('img'));
@@ -46,6 +217,7 @@ EinsteinController.prototype = {
 
                 var itable = this.hints[i][j].view = Element.extend(document.createElement('table'));
                 td.insert(itable);
+                itable.setStyle({width: '102px'});
                 itable.cellSpacing = 0;
                 itable.cellPadding = 0;
                 var itbody = Element.extend(document.createElement('tbody'));
@@ -58,7 +230,7 @@ EinsteinController.prototype = {
                 for (k = 0; k < 3; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', cursor: 'pointer', border:'1px solid'});
+                    itd.setStyle({width:'32px', cursor:'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
@@ -68,7 +240,7 @@ EinsteinController.prototype = {
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
                         return function (event) {
-                            if (!scope.status) {
+                            if (!scope.isActive()) {
                                 return false;
                             }
                             scope.hintMouseDown(ii, ij, ik, event.button != 2);
@@ -83,7 +255,7 @@ EinsteinController.prototype = {
                 for (k = 3; k < 6; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:'32px', cursor: 'pointer', border:'1px solid'});
+                    itd.setStyle({width:'32px', cursor:'pointer', border:'1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
@@ -93,7 +265,7 @@ EinsteinController.prototype = {
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
                         return function (event) {
-                            if (!scope.status) {
+                            if (!scope.isActive()) {
                                 return false;
                             }
                             scope.hintMouseDown(ii, ij, ik, event.button != 2);
@@ -106,25 +278,7 @@ EinsteinController.prototype = {
         }
     },
 
-    generate:function () {
-        this.data = {count:6 * 6, field:[]};
-        for (var i = 0; i < 6; ++i) {
-            this.data.field[i] = [];
-
-            var tmp = [1, 2, 3, 4, 5, 6];
-            while (tmp.length > 0) {
-                var item;
-                var data = {
-                    value:item = tmp.splice(Math.random() * tmp.length, 1)[0],
-                    items:{count:6, 1:true, 2:true, 3:true, 4:true, 5:true, 6:true}};
-                this.data.field[i].push(data);
-            }
-        }
-    },
-
     resetField:function () {
-        this.status = true;
-
         var i, j, k;
         for (i = 0; i < 6; ++i) {
             for (j = 0; j < 6; ++j) {
@@ -140,80 +294,60 @@ EinsteinController.prototype = {
                     this.hints[i][j].items[k].up().setStyle({width:'32px'});
 
                     // todo: it's debug
-                    this.hints[i][j].items[k].up().setStyle({border:'1px solid ' + ((k + 1) == this.data.field[i][j].value ? 'red' : 'black')});
+                    this.hints[i][j].items[k].up().setStyle({border:'1px solid ' + (k == this.game.data.getValue(i, j) ? 'red' : 'black')});
                 }
             }
         }
     },
 
-    initButtons:function () {
-        $('new').onclick = (function (scope) {
-            return function (event) {
-                scope.generate();
-                scope.resetField();
-                return false;
+    setGameController:function (gc) {
+        this.game = gc;
+        this.game.setSetListener((function (scope) {
+            return function (i, j, k) {
+                scope.onSet(i, j, k);
             }
-        })(this);
+        })(this));
+        this.game.setExcludeListener((function (scope) {
+            return function (i, j, k) {
+                scope.onExclude(i, j, k);
+            }
+        })(this));
     },
 
-    hintMouseDown:function (i, j, k, action) {
-        // TODO:
-        var data = this.data.field[i][j];
-        var hintf = this.hints[i][j].view;
-        var hint = this.hints[i][j].items[k];
-
-        if (!data.items[(k + 1)]) {
-            return;
-        }
-
-        if (!action) { // right!
-            if (data.value == (k + 1)) {
-                this.status = false;
-            }
-            --data.items.count;
-            data.items[(k + 1)] = false;
-            hint.up().setStyle({border:'none', width:'34px'});
-            hint.hide();
-            if (data.items.count == 1) {
-                for (var h = 0; h < 6; ++h) {
-                    if (data.items[(h + 1)]) {
-                        (function (scope, ik) {
-                            scope.hintMouseDown(i, j, ik, true);
-                        })(this, h);
-                    }
-                }
-            }
+    hintMouseDown:function (i, j, k, isSet) {
+        if (isSet) {
+            this.game.set(i, j, k);
         } else {
-            if (data.value != (k + 1)) {
-                this.status = false;
-            } else {
-                --this.data.count;
-            }
-            data.count = 1;
-            for (var t = 0; t < 6; ++t) {
-                data.items[(t + 1)] = (t == k);
-            }
-
-            hintf.hide();
-            this.cells[i][j].src = 'images/' + (i + 1) + (k + 1) + '.gif';
-            this.cells[i][j].show();
-            for (var n = 0; n < 6; ++n) {
-                if (n != j) {
-                    (function (scope, ij) {
-                        scope.hintMouseDown(i, ij, k, false);
-                    })(this, n);
-                }
-            }
+            this.game.exclude(i, j, k);
         }
+    },
+
+    onSet:function (i, j, k) {
+        this.hints[i][j].view.hide();
+        this.cells[i][j].src = 'images/' + (i + 1) + (k + 1) + '.gif';
+        this.cells[i][j].show();
+    },
+
+    onExclude:function (i, j, k) {
+        this.hints[i][j].items[k].up().setStyle({width: '34px', border:'0'});
+        this.hints[i][j].items[k].hide();
+    },
+
+    isActive:function () {
+        return this.game && this.game.isActive();
     },
 
     checkField:function () {
-        if (!this.status) {
-            alert('Fail =(');
-        }
-        if (this.data.count == 0) {
-            alert('Victory =)');
-            this.status = false;
+        if (!this.isActive()) {
+            if (this.game && this.game.isVictory()) {
+                alert('victory');
+                return;
+            }
+            if (this.game && this.game.isFail()) {
+                alert('fail');
+                return;
+            }
+            // TODO: unexpected status
         }
     }
 };
