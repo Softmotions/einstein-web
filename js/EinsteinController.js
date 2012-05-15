@@ -75,17 +75,31 @@ Object.extend(EinsteinController.prototype, {
         this.ehr.update();
         this.evr.update();
 
-//        var solver = new Solver(this.gc);
-        var tgc = new GameController(this.data);
-        var solver = new Solver(tgc);
+        var solver = new Solver(new GameController(this.data));
         while (!solver.isSolved()) {
-            var nrule = this.createRule(solver.getRules());
-            if (nrule.apply(tgc)) {
-                solver.addRule(nrule);
-                solver.solve();
-            }
+            solver.addRule(this.createRule(solver.getRules()));
+            solver.solve();
         }
         this.rules = solver.getRules();
+
+        var solved;
+        do {
+            solved = false;
+            for (var n = 0; n < this.rules.length; ++n) {
+                solver = new Solver(new GameController(this.data));
+                var trules = [].concat(this.rules);
+                trules.splice(n, 1);
+                solver.addRules(trules);
+                solver.solve();
+                if (solver.isSolved()) {
+                    this.rules.splice(n, 1);
+                    solved = true;
+                    break;
+                }
+            }
+        } while (solved);
+
+        this.gc.start();
 
         for (var i = 0; i < this.rules.length; ++i) {
             var rule = this.rules[i];
@@ -116,7 +130,6 @@ Object.extend(EinsteinController.prototype, {
                 rule.draw(container);
             }
         }
-        this.gc.start();
     },
 
     createRule:function (rules) {
@@ -246,7 +259,7 @@ Object.extend(GameController.prototype, {
             this.onSet(i, j, k);
         }
         if (0 === this.count) {
-            this.status = 0;
+            this.stop();
         }
     },
 
@@ -256,7 +269,7 @@ Object.extend(GameController.prototype, {
         }
 
         if (this.data.getValue(i, j) === k) {
-            this.status = 0;
+            this.stop();
         }
 
         --this.field[i].cols[j].possible;
@@ -293,7 +306,7 @@ Object.extend(GameController.prototype, {
     },
 
     isActive:function () {
-        return this.status === 1;
+        return this.startTime && !this.endTime;
     },
 
     isSolved:function () {
@@ -309,15 +322,29 @@ Object.extend(GameController.prototype, {
     },
 
     start:function () {
-        this.status = 1;
+        this.startTime = new Date().getTime();
+    },
+
+    stop:function () {
+        this.endTime = this.endTime || new Date().getTime();
+    },
+
+    getTime:function () {
+        return Math.floor((this.startTime ? (this.endTime || new Date().getTime()) - this.startTime : 0) / 1000);
     }
 });
 
 ViewController = function (size) {
     this.size = size;
     this.root = $('einstein-panel');
+    this.info = $('info');
 
     this.buildField();
+    this.interval = setInterval((function (scope) {
+        return function () {
+            scope.infoStat();
+        }
+    })(this), 1000);
 };
 
 Object.extend(ViewController.prototype, {
@@ -335,25 +362,25 @@ Object.extend(ViewController.prototype, {
 
             var tr = Element.extend(document.createElement('tr'));
             this.root.insert(tr);
-            tr.setStyle({height:(3 * SIZES.hint + 2 * 1) + 'px'});
+            tr.setStyle({height:(3 * (SIZES.hint + 2 * 1) + 2 * 1) + 'px'});
             for (var j = 0; j < 6; ++j) {
                 this.hints[i][j] = {items:[]};
 
                 var td = Element.extend(document.createElement('td'));
                 tr.insert(td);
-                td.setStyle({width:(3 * SIZES.hint) + 'px'});
+                td.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px'});
                 td.align = 'center';
 
                 var img;
                 img = this.cells[i][j] = Element.extend(document.createElement('img'));
                 td.insert(img);
 
-                img.setStyle({width:(3 * SIZES.hint) + 'px', height:(3 * SIZES.hint) + 'px'});
+                img.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px', height:(3 * (SIZES.hint + 2 * 1)) + 'px'});
                 img.hide();
 
                 var itable = this.hints[i][j].view = Element.extend(document.createElement('table'));
                 td.insert(itable);
-                itable.setStyle({width:(3 * SIZES.hint) + 'px'});
+                itable.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px'});
                 itable.cellSpacing = 0;
                 itable.cellPadding = 0;
                 var itbody = Element.extend(document.createElement('tbody'));
@@ -486,6 +513,18 @@ Object.extend(ViewController.prototype, {
             }
             // TODO: unexpected status
         }
+    },
+
+    infoStat:function () {
+        if (!this.game) {
+            this.info.update('&nbsp;');
+        } else {
+            var time = this.game.getTime();
+            var hours = Math.floor(time / 3600);
+            var minutes = Math.floor((time % 3600) / 60);
+            var seconds = Math.floor(time % 60);
+            this.info.update('Время: <span style="font-weight: bold;">' + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds + '</span>');
+        }
     }
 });
 
@@ -498,8 +537,8 @@ Object.extend(OpenRule.prototype, {
         return 'open';
     },
     generate:function (data) {
-        this.row = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.col = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+        this.row = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.col = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.value = data.getValue(this.row, this.col);
     },
     apply   :function (game) {
@@ -526,10 +565,10 @@ Object.extend(UnderRule.prototype, {
         return 'under';
     },
     generate:function (data) {
-        this.col = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.row1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+        this.col = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         do {
-            this.row2 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+            this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         } while (this.row2 === this.row1);
         if (this.row1 > this.row2) {
             this.row1 += this.row2;
@@ -608,9 +647,9 @@ Object.extend(NearRule.prototype, {
         return 'near';
     },
     generate:function (data) {
-        this.row1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.col1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.row2 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+        this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.col1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.col2 = this.col1 === 0 ? 1 : (this.col1 === data.getSize() - 1 ? data.getSize() - 2 : this.col1 + (Math.random() < 0.5 ? -1 : +1));
 
         this.value1 = data.getValue(this.row1, this.col1);
@@ -696,11 +735,11 @@ Object.extend(DirectionRule.prototype, {
         return 'direction';
     },
     generate:function (data) {
-        this.row1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.col1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.row2 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+        this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.col1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         do {
-            this.col2 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+            this.col2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         } while (this.col2 === this.col1);
         if (this.col1 > this.col2) {
             this.col1 += this.col2;
@@ -795,11 +834,11 @@ Object.extend(BetweenRule.prototype, {
         return 'between';
     },
     generate:function (data) {
-        this.row = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.row1 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
-        this.row2 = Math.ceil(Math.random() * data.getSize()) % data.getSize();
+        this.row = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
+        this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
 
-        this.col = 1 + Math.ceil(Math.random() * (data.getSize() - 2)) % (data.getSize() - 2);
+        this.col = 1 + Math.floor(Math.random() * (data.getSize() - 2)) % (data.getSize() - 2);
 
         var delta = Math.random() < 0.5 ? 1 : -1;
 
@@ -915,7 +954,7 @@ Object.extend(BetweenRule.prototype, {
 
 Rule = {
     generate:function (data) {
-        switch (Math.ceil(Math.random() * 14)) {
+        switch (Math.floor(Math.random() * 14)) {
             case 0:
             case 1:
             case 2:
@@ -949,6 +988,10 @@ Solver = function (game) {
 Object.extend(Solver.prototype, {
     addRule:function (rule) {
         this.rules.push(rule);
+    },
+
+    addRules:function (rules) {
+        this.rules = this.rules.concat(rules);
     },
 
     getRules:function () {
