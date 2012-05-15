@@ -111,30 +111,34 @@ Object.extend(EinsteinController.prototype, {
                 container = Element.extend(document.createElement('div'));
                 this.evr.insert(container);
                 container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
-                container.oncontextmenu = (function (element, index) {
+                container.oncontextmenu = (function (scope, element, index) {
                     rstat[index] = true;
                     return function (event) {
+                        if (!scope.gc.isActive()) {
+                            return false;
+                        }
                         element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
-//                        element.toggle();
                         return false;
                     }
-                })(container, i);
+                })(this, container, i);
                 rule.draw(container);
             } else if (['near', 'direction', 'between'].indexOf(rule.type()) > -1) {
                 container = Element.extend(document.createElement('div'));
                 this.ehr.insert(container);
                 container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
-                container.oncontextmenu = (function (element, index) {
+                container.oncontextmenu = (function (scope, element, index) {
                     rstat[index] = true;
                     return function (event) {
+                        if (!scope.gc.isActive()) {
+                            return false;
+                        }
                         element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
-//                        element.toggle();
                         return false;
                     }
-                })(container, i);
-                rule.draw(container, i);
+                })(this, container, i);
+                rule.draw(container);
             }
         }
     },
