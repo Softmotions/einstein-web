@@ -6,7 +6,7 @@
 // TODO:
 // alert('( ' + i + ', ' + j + ', ' + k + ')');
 
-    const SIZES = {
+SIZES = {
     hint:28
 };
 
@@ -101,6 +101,7 @@ Object.extend(EinsteinController.prototype, {
 
         this.gc.start();
 
+        var rstat = [];
         for (var i = 0; i < this.rules.length; ++i) {
             var rule = this.rules[i];
             var container;
@@ -110,24 +111,30 @@ Object.extend(EinsteinController.prototype, {
                 container = Element.extend(document.createElement('div'));
                 this.evr.insert(container);
                 container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
-                container.oncontextmenu = (function (element) {
+                container.oncontextmenu = (function (element, index) {
+                    rstat[index] = true;
                     return function (event) {
-                        element.toggle();
+                        element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
+                        rstat[index] = !rstat[index];
+//                        element.toggle();
                         return false;
                     }
-                })(container);
+                })(container, i);
                 rule.draw(container);
             } else if (['near', 'direction', 'between'].indexOf(rule.type()) > -1) {
                 container = Element.extend(document.createElement('div'));
                 this.ehr.insert(container);
                 container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
-                container.oncontextmenu = (function (element) {
+                container.oncontextmenu = (function (element, index) {
+                    rstat[index] = true;
                     return function (event) {
-                        element.toggle();
+                        element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
+                        rstat[index] = !rstat[index];
+//                        element.toggle();
                         return false;
                     }
-                })(container);
-                rule.draw(container);
+                })(container, i);
+                rule.draw(container, i);
             }
         }
     },
