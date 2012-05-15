@@ -342,6 +342,7 @@ Object.extend(GameController.prototype, {
 });
 
 ViewController = function (size) {
+    // TODO: size!
     this.size = size;
     this.root = $('einstein-panel');
     this.info = $('info');
