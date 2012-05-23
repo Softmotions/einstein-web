@@ -31,26 +31,50 @@ Object.extend(EinsteinController.prototype, {
     initButtons:function () {
         $('new').onclick = (function (scope) {
             return function (event) {
-                scope.newGame();
+                if (!scope.gc.isActive() || confirm('Вы действительно хотите начать новую игру?')) {
+                    scope.newGame();
+                    scope.vc.unhide();
+                    scope.ehr.show();
+                    scope.evr.show();
+                    $('pause').update('Пауза');
+                }
                 return false;
             }
         })(this);
 
-        $('hidden').onclick = (function (scope) {
+        $('pause').onclick = (function (scope) {
             return function (event) {
-                var item;
-
-                item = scope.ehr.down();
-                while (item) {
-                    item.toggle();
-                    item = item.next();
+                if (!scope.gc.isActive()) {
+                    return false;
                 }
-                item = scope.evr.down();
-                while (item) {
-                    item.toggle();
-                    item = item.next();
+                if (scope.gc.isPaused()) {
+                    scope.vc.unhide();
+                    scope.ehr.show();
+                    scope.evr.show();
+                    scope.gc.resume();
+                    $('pause').update('Пауза');
+                } else {
+                    scope.vc.hide();
+                    scope.ehr.hide();
+                    scope.evr.hide();
+                    scope.gc.pause();
+                    $('pause').update('Возобновить');
                 }
                 return false;
+            }
+        })(this);
+
+        window.onblur = (function (scope) {
+            return function (event) {
+                if (!scope.gc.isActive() || scope.gc.isPaused()) {
+                    return;
+                }
+                scope.vc.hide();
+                scope.ehr.hide();
+                scope.evr.hide();
+                scope.gc.pause();
+                $('pause').update('Возобновить');
+                return;
             }
         })(this);
 
@@ -117,7 +141,7 @@ Object.extend(EinsteinController.prototype, {
                         if (!scope.gc.isActive()) {
                             return false;
                         }
-                        element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
+                        element.setStyle({opacity:(rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
                         return false;
                     }
@@ -133,7 +157,7 @@ Object.extend(EinsteinController.prototype, {
                         if (!scope.gc.isActive()) {
                             return false;
                         }
-                        element.setStyle({opacity: (rstat[index] ? '0.15' : '1')});
+                        element.setStyle({opacity:(rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
                         return false;
                     }
@@ -259,7 +283,7 @@ Object.extend(GameController.prototype, {
         this.field[i].cols[j].defined = k;
         for (var n = 0; n < this.size; ++n) {
             this.field[i].values[k].cols[n] = (n === j);
-            this.field[i].values[n].possible -= (n === k || !this.field[i].cols[j].values[n] ? 0 : 1);
+            this.field[i].values[n].possible -= (n !== k && this.field[i].cols[j].values[n] ? 1 : 0);
             this.field[i].values[n].cols[j] = (n === k);
         }
         for (var h = 0; h < this.size; ++h) {
@@ -269,6 +293,9 @@ Object.extend(GameController.prototype, {
         if (this.onSet) {
             this.onSet(i, j, k);
         }
+
+        this.checkSingle(i, j, k);
+
         if (0 === this.count) {
             this.stop();
         }
@@ -290,6 +317,11 @@ Object.extend(GameController.prototype, {
         if (this.onExclude) {
             this.onExclude(i, j, k);
         }
+
+        this.checkSingle(i, j, k);
+    },
+
+    checkSingle:function (i, j, k) {
         if (this.field[i].cols[j].possible == 1) {
             for (var h = 0; h < this.size; ++h) {
                 if (this.field[i].cols[j].values[h]) {
@@ -298,11 +330,14 @@ Object.extend(GameController.prototype, {
                 }
             }
         }
-        if (this.field[i].values[k].possible == 1) {
-            for (var n = 0; n < this.size; ++n) {
-                if (this.field[i].values[k].cols[n]) {
-                    this.set(i, n, k);
-                    break;
+
+        for (var t = 0; t < this.size; ++t) {
+            if (this.field[i].values[t].possible == 1) {
+                for (var n = 0; n < this.size; ++n) {
+                    if (this.field[i].values[t].cols[n]) {
+                        this.set(i, n, t);
+                        break;
+                    }
                 }
             }
         }
@@ -317,7 +352,11 @@ Object.extend(GameController.prototype, {
     },
 
     isActive:function () {
-        return this.startTime && !this.endTime;
+        return this.startGame && !this.endGame;
+    },
+
+    isPaused:function () {
+        return !!this.startPause;
     },
 
     isSolved:function () {
@@ -333,15 +372,36 @@ Object.extend(GameController.prototype, {
     },
 
     start:function () {
-        this.startTime = new Date().getTime();
+        if (this.startGame) {
+            return;
+        }
+        this.startGame = new Date().getTime();
+    },
+
+    pause:function () {
+        if (this.startPause || !this.startGame) {
+            return;
+        }
+        this.startPause = new Date().getTime();
+    },
+
+    resume:function () {
+        if (!this.startPause || !this.startGame) {
+            return;
+        }
+        this.startGame += (new Date().getTime() - this.startPause);
+        this.startPause = undefined;
     },
 
     stop:function () {
-        this.endTime = this.endTime || new Date().getTime();
+        if (!this.startGame || this.endGame) {
+            return;
+        }
+        this.endGame = this.endGame || new Date().getTime();
     },
 
     getTime:function () {
-        return Math.floor((this.startTime ? (this.endTime || new Date().getTime()) - this.startTime : 0) / 1000);
+        return this.startGame ? Math.floor(((this.startPause || this.endGame || new Date().getTime()) - this.startGame) / 1000) : 0;
     }
 });
 
@@ -440,7 +500,7 @@ Object.extend(ViewController.prototype, {
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
                         return function (event) {
-                            if (!scope.isActive()) {
+                            if (!scope.isActive() || scope.game.isPaused()) {
                                 return false;
                             }
                             scope.hintMouseDown(ii, ij, ik, event.button != 2);
@@ -535,8 +595,17 @@ Object.extend(ViewController.prototype, {
             var hours = Math.floor(time / 3600);
             var minutes = Math.floor((time % 3600) / 60);
             var seconds = Math.floor(time % 60);
-            this.info.update('Время: <span style="font-weight: bold;">' + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds + '</span>');
+            this.info.update('Время: <span style="font-weight: bold;">' + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds +
+                             '</span>');
         }
+    },
+
+    hide:function () {
+        this.root.up().hide();//setStyle({opacity: 0});
+    },
+
+    unhide:function () {
+        this.root.up().show();
     }
 });
 
