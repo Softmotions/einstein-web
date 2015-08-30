@@ -3,11 +3,8 @@
  * @author Tyutyunkov VE
  */
 
-// TODO:
-// alert('( ' + i + ', ' + j + ', ' + k + ')');
-
 SIZES = {
-    hint:28
+    hint : 28
 };
 
 EinsteinController = function (size) {
@@ -24,11 +21,11 @@ EinsteinController = function (size) {
 };
 
 Object.extend(EinsteinController.prototype, {
-    initField:function () {
+    initField : function () {
         this.vc = new ViewController(this.size);
     },
 
-    initButtons:function () {
+    initButtons : function () {
         $('new').onclick = (function (scope) {
             return function (event) {
                 if (!scope.gc.isActive() || confirm('Вы действительно хотите начать новую игру?')) {
@@ -90,7 +87,7 @@ Object.extend(EinsteinController.prototype, {
         })(this);
     },
 
-    newGame:function () {
+    newGame : function () {
         this.data = new DataField(this.size);
         this.gc = new GameController(this.data);
         this.vc.setGameController(this.gc);
@@ -134,14 +131,14 @@ Object.extend(EinsteinController.prototype, {
             } else if ('under' === rule.type()) {
                 container = Element.extend(document.createElement('div'));
                 this.evr.insert(container);
-                container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
+                container.setStyle({'border' : '1px solid', 'float' : 'left', padding : '1px', margin : '5px'});
                 container.oncontextmenu = (function (scope, element, index) {
                     rstat[index] = true;
                     return function (event) {
                         if (!scope.gc.isActive()) {
                             return false;
                         }
-                        element.setStyle({opacity:(rstat[index] ? '0.15' : '1')});
+                        element.setStyle({opacity : (rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
                         return false;
                     }
@@ -150,14 +147,14 @@ Object.extend(EinsteinController.prototype, {
             } else if (['near', 'direction', 'between'].indexOf(rule.type()) > -1) {
                 container = Element.extend(document.createElement('div'));
                 this.ehr.insert(container);
-                container.setStyle({'border':'1px solid', 'float':'left', padding:'1px', margin:'5px'});
+                container.setStyle({'border' : '1px solid', 'float' : 'left', padding : '1px', margin : '5px'});
                 container.oncontextmenu = (function (scope, element, index) {
                     rstat[index] = true;
                     return function (event) {
                         if (!scope.gc.isActive()) {
                             return false;
                         }
-                        element.setStyle({opacity:(rstat[index] ? '0.15' : '1')});
+                        element.setStyle({opacity : (rstat[index] ? '0.15' : '1')});
                         rstat[index] = !rstat[index];
                         return false;
                     }
@@ -167,7 +164,7 @@ Object.extend(EinsteinController.prototype, {
         }
     },
 
-    createRule:function (rules) {
+    createRule : function (rules) {
         var found;
         var rule;
         do {
@@ -192,9 +189,9 @@ DataField = function (size) {
 };
 
 Object.extend(DataField.prototype, {
-    generate:function () {
+    generate : function () {
         this.data = [];
-        for (var i = 0; i < 6; ++i) {
+        for (var i = 0; i < this.size; ++i) {
             this.data[i] = [];
 
             var tmp = [];
@@ -208,11 +205,11 @@ Object.extend(DataField.prototype, {
         }
     },
 
-    getSize:function () {
+    getSize : function () {
         return this.size;
     },
 
-    getValue:function (i, j) {
+    getValue : function (i, j) {
         return this.data[i][j];
     }
 });
@@ -225,24 +222,24 @@ GameController = function (data) {
 };
 
 Object.extend(GameController.prototype, {
-    init:function () {
+    init : function () {
         this.count = this.size * this.size;
         this.field = [];
         for (var i = 0; i < this.size; ++i) {
             this.field[i] = {
-                cols  :[],
-                values:[]
+                cols   : [],
+                values : []
             };
             for (var j = 0; j < this.size; ++j) {
                 var cols, values;
                 this.field[i].values[j] = {
-                    possible:this.size,
-                    cols    :cols = {}
+                    possible : this.size,
+                    cols     : cols = {}
                 };
                 this.field[i].cols[j] = {
-                    possible:this.size,
-                    values  :values = {},
-                    defined :null
+                    possible : this.size,
+                    values   : values = {},
+                    defined  : null
                 };
                 for (var k = 0; k < this.size; ++k) {
                     cols[k] = true;
@@ -252,29 +249,29 @@ Object.extend(GameController.prototype, {
         }
     },
 
-    getSize:function () {
+    getSize : function () {
         return this.size;
     },
 
-    isPossible:function (i, j, k) {
+    isPossible : function (i, j, k) {
         return (!this.isDefined(i, j) && this.field[i].cols[j].values[k]) || (this.isDefined(i, j) && this.getDefined(i, j) === k);
     },
 
-    isDefined:function (i, j) {
+    isDefined : function (i, j) {
         return this.field[i].cols[j].defined !== null;
     },
 
-    getDefined:function (i, j) {
+    getDefined : function (i, j) {
         return this.field[i].cols[j].defined;
     },
 
-    set:function (i, j, k) {
+    set : function (i, j, k) {
         if (!this.isPossible(i, j, k) || this.isDefined(i, j)) {
             return;
         }
 
         if (this.data.getValue(i, j) != k) {
-            this.status = 0;
+            this.stop();
         }
 
         --this.count;
@@ -301,7 +298,7 @@ Object.extend(GameController.prototype, {
         }
     },
 
-    exclude:function (i, j, k) {
+    exclude : function (i, j, k) {
         if (!this.isPossible(i, j, k) || this.isDefined(i, j)) {
             return;
         }
@@ -321,7 +318,7 @@ Object.extend(GameController.prototype, {
         this.checkSingle(i, j, k);
     },
 
-    checkSingle:function (i, j, k) {
+    checkSingle : function (i, j, k) {
         if (this.field[i].cols[j].possible == 1) {
             for (var h = 0; h < this.size; ++h) {
                 if (this.field[i].cols[j].values[h]) {
@@ -343,49 +340,49 @@ Object.extend(GameController.prototype, {
         }
     },
 
-    setSetListener:function (listener) {
+    setSetListener : function (listener) {
         this.onSet = listener;
     },
 
-    setExcludeListener:function (listener) {
+    setExcludeListener : function (listener) {
         this.onExclude = listener;
     },
 
-    isActive:function () {
+    isActive : function () {
         return this.startGame && !this.endGame;
     },
 
-    isPaused:function () {
+    isPaused : function () {
         return !!this.startPause;
     },
 
-    isSolved:function () {
+    isSolved : function () {
         return this.count === 0;
     },
 
-    isFail:function () {
+    isFail : function () {
         return !this.isActive() && !this.isSolved();
     },
 
-    isVictory:function () {
+    isVictory : function () {
         return !this.isActive() && this.isSolved();
     },
 
-    start:function () {
+    start : function () {
         if (this.startGame) {
             return;
         }
         this.startGame = new Date().getTime();
     },
 
-    pause:function () {
+    pause : function () {
         if (this.startPause || !this.startGame) {
             return;
         }
         this.startPause = new Date().getTime();
     },
 
-    resume:function () {
+    resume : function () {
         if (!this.startPause || !this.startGame) {
             return;
         }
@@ -393,14 +390,14 @@ Object.extend(GameController.prototype, {
         this.startPause = undefined;
     },
 
-    stop:function () {
+    stop : function () {
         if (!this.startGame || this.endGame) {
             return;
         }
         this.endGame = this.endGame || new Date().getTime();
     },
 
-    getTime:function () {
+    getTime : function () {
         return this.startGame ? Math.floor(((this.startPause || this.endGame || new Date().getTime()) - this.startGame) / 1000) : 0;
     }
 });
@@ -420,7 +417,7 @@ ViewController = function (size) {
 };
 
 Object.extend(ViewController.prototype, {
-    buildField:function () {
+    buildField : function () {
         this.cells = [];
         this.hints = [];
 
@@ -428,31 +425,31 @@ Object.extend(ViewController.prototype, {
         this.root.oncontextmenu = function (event) {
             return false;
         };
-        for (var i = 0; i < 6; ++i) {
+        for (var i = 0; i < this.size; ++i) {
             this.cells[i] = [];
             this.hints[i] = [];
 
             var tr = Element.extend(document.createElement('tr'));
             this.root.insert(tr);
-            tr.setStyle({height:(3 * (SIZES.hint + 2 * 1) + 2 * 1) + 'px'});
-            for (var j = 0; j < 6; ++j) {
-                this.hints[i][j] = {items:[]};
+            tr.setStyle({height : (3 * (SIZES.hint + 2 * 1) + 2 * 1) + 'px'});
+            for (var j = 0; j < this.size; ++j) {
+                this.hints[i][j] = {items : []};
 
                 var td = Element.extend(document.createElement('td'));
                 tr.insert(td);
-                td.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px'});
+                td.setStyle({width : (3 * (SIZES.hint + 2 * 1)) + 'px'});
                 td.align = 'center';
 
                 var img;
                 img = this.cells[i][j] = Element.extend(document.createElement('img'));
                 td.insert(img);
 
-                img.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px', height:(3 * (SIZES.hint + 2 * 1)) + 'px'});
+                img.setStyle({width : (3 * (SIZES.hint + 2 * 1)) + 'px', height : (3 * (SIZES.hint + 2 * 1)) + 'px'});
                 img.hide();
 
                 var itable = this.hints[i][j].view = Element.extend(document.createElement('table'));
                 td.insert(itable);
-                itable.setStyle({width:(3 * (SIZES.hint + 2 * 1)) + 'px'});
+                itable.setStyle({width : (3 * (SIZES.hint + 2 * 1)) + 'px'});
                 itable.cellSpacing = 0;
                 itable.cellPadding = 0;
                 var itbody = Element.extend(document.createElement('tbody'));
@@ -461,16 +458,16 @@ Object.extend(ViewController.prototype, {
                 var itr, itd, iimg, k;
                 itr = Element.extend(document.createElement('tr'));
                 itbody.insert(itr);
-                itr.setStyle({height:(SIZES.hint + 2 * 1) + 'px'});
+                itr.setStyle({height : (SIZES.hint + 2 * 1) + 'px'});
                 for (k = 0; k < 3; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:(SIZES.hint) + 'px', cursor:'pointer', border:'1px solid'});
+                    itd.setStyle({width : (SIZES.hint) + 'px', cursor : 'pointer', border : '1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
 
-                    iimg.setStyle({width:(SIZES.hint) + 'px', height:(SIZES.hint) + 'px'});
+                    iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
                     iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
@@ -486,16 +483,16 @@ Object.extend(ViewController.prototype, {
                 }
                 itr = Element.extend(document.createElement('tr'));
                 itbody.insert(itr);
-                itr.setStyle({height:(SIZES.hint + 2 * 1) + 'px'});
+                itr.setStyle({height : (SIZES.hint + 2 * 1) + 'px'});
                 for (k = 3; k < 6; ++k) {
                     itd = Element.extend(document.createElement('td'));
                     itr.insert(itd);
-                    itd.setStyle({width:(SIZES.hint) + 'px', cursor:'pointer', border:'1px solid'});
+                    itd.setStyle({width : (SIZES.hint) + 'px', cursor : 'pointer', border : '1px solid'});
 
                     iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
                     itd.insert(iimg);
 
-                    iimg.setStyle({width:(SIZES.hint) + 'px', height:(SIZES.hint) + 'px'});
+                    iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
                     iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
@@ -509,34 +506,54 @@ Object.extend(ViewController.prototype, {
                         }
                     })(this, i, j, k);
                 }
-            }
-        }
-    },
+                if (this.size > 6) {
+                    itr = Element.extend(document.createElement('tr'));
+                    itbody.insert(itr);
+                    itr.setStyle({height : (SIZES.hint + 2 * 1) + 'px'});
+                    for (k = 6; k < 9; ++k) {
+                        itd = Element.extend(document.createElement('td'));
+                        itr.insert(itd);
+                        itd.setStyle({width : (SIZES.hint) + 'px', cursor : 'pointer', border : '1px solid'});
 
-    resetField:function () {
-        var i, j, k;
-        for (i = 0; i < 6; ++i) {
-            for (j = 0; j < 6; ++j) {
-                this.cells[i][j].hide();
-                this.hints[i][j].view.show();
+                        iimg = this.hints[i][j].items[k] = Element.extend(document.createElement('img'));
+                        itd.insert(iimg);
 
-//                //todo: it's debug
-//                this.cells[i][j].show();
-//                this.cells[i][j].src = 'images/' + (i+1) + (this.data.field[i][j].value) + '.gif';
-//                this.hints[i][j].view.hide();
-                for (k = 0; k < 6; ++k) {
-                    this.hints[i][j].items[k].show();
-                    this.hints[i][j].items[k].up().setStyle({width:(SIZES.hint) + 'px'});
-                    this.hints[i][j].items[k].up().setStyle({border:'1px solid black'});
+                        iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
+                        iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
 
-//                    // todo: it's debug
-//                    this.hints[i][j].items[k].up().setStyle({border:'1px solid ' + (k == this.game.data.getValue(i, j) ? 'red' : 'black')});
+                        itd.onmousedown = (function (scope, ii, ij, ik) {
+                            return function (event) {
+                                if (!scope.isActive() || scope.game.isPaused()) {
+                                    return false;
+                                }
+                                scope.hintMouseDown(ii, ij, ik, event.button != 2);
+                                scope.checkField();
+                                return false;
+                            }
+                        })(this, i, j, k);
+                    }
                 }
             }
         }
     },
 
-    setGameController:function (gc) {
+    resetField : function () {
+        var i, j, k;
+        for (i = 0; i < this.size; ++i) {
+            for (j = 0; j < this.size; ++j) {
+                this.cells[i][j].hide();
+                this.hints[i][j].view.show();
+
+                for (k = 0; k < this.size; ++k) {
+                    this.hints[i][j].items[k].show();
+                    this.hints[i][j].items[k].up().setStyle({width : (SIZES.hint) + 'px'});
+                    this.hints[i][j].items[k].up().setStyle({border : '1px solid black'});
+                }
+            }
+        }
+    },
+
+    setGameController : function (gc) {
         this.game = gc;
         this.game.setSetListener((function (scope) {
             return function (i, j, k) {
@@ -550,7 +567,7 @@ Object.extend(ViewController.prototype, {
         })(this));
     },
 
-    hintMouseDown:function (i, j, k, isSet) {
+    hintMouseDown : function (i, j, k, isSet) {
         if (isSet) {
             this.game.set(i, j, k);
         } else {
@@ -558,22 +575,22 @@ Object.extend(ViewController.prototype, {
         }
     },
 
-    onSet:function (i, j, k) {
+    onSet : function (i, j, k) {
         this.hints[i][j].view.hide();
-        this.cells[i][j].src = 'images/' + (i + 1) + (k + 1) + '.gif';
+        this.cells[i][j].src = 'images/' + ((i + 1) % 10) + ((k + 1) % 10) + '.gif';
         this.cells[i][j].show();
     },
 
-    onExclude:function (i, j, k) {
-        this.hints[i][j].items[k].up().setStyle({width:(SIZES.hint + 2 * 1) + 'px', border:'0'});
+    onExclude : function (i, j, k) {
+        this.hints[i][j].items[k].up().setStyle({width : (SIZES.hint + 2 * 1) + 'px', border : '0'});
         this.hints[i][j].items[k].hide();
     },
 
-    isActive:function () {
+    isActive : function () {
         return this.game && this.game.isActive();
     },
 
-    checkField:function () {
+    checkField : function () {
         if (!this.isActive()) {
             if (this.game && this.game.isVictory()) {
                 alert('victory');
@@ -587,7 +604,7 @@ Object.extend(ViewController.prototype, {
         }
     },
 
-    infoStat:function () {
+    infoStat : function () {
         if (!this.game) {
             this.info.update('&nbsp;');
         } else {
@@ -600,11 +617,11 @@ Object.extend(ViewController.prototype, {
         }
     },
 
-    hide:function () {
+    hide : function () {
         this.root.up().hide();//setStyle({opacity: 0});
     },
 
-    unhide:function () {
+    unhide : function () {
         this.root.up().show();
     }
 });
@@ -614,15 +631,15 @@ OpenRule = function (data) {
 };
 
 Object.extend(OpenRule.prototype, {
-    type    :function () {
+    type     : function () {
         return 'open';
     },
-    generate:function (data) {
+    generate : function (data) {
         this.row = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.col = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.value = data.getValue(this.row, this.col);
     },
-    apply   :function (game) {
+    apply    : function (game) {
         if (!game.isDefined(this.row, this.col)) {
             game.set(this.row, this.col, this.value);
             return true;
@@ -630,7 +647,7 @@ Object.extend(OpenRule.prototype, {
             return false;
         }
     },
-    equals  :function (rule) {
+    equals   : function (rule) {
         if (rule.type() !== this.type()) {
             return false;
         }
@@ -642,10 +659,10 @@ UnderRule = function (data) {
     this.generate(data);
 };
 Object.extend(UnderRule.prototype, {
-    type    :function () {
+    type     : function () {
         return 'under';
     },
-    generate:function (data) {
+    generate : function (data) {
         this.col = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         do {
@@ -660,7 +677,7 @@ Object.extend(UnderRule.prototype, {
         this.value1 = data.getValue(this.row1, this.col);
         this.value2 = data.getValue(this.row2, this.col);
     },
-    apply   :function (game) {
+    apply    : function (game) {
         var changed = false;
 
         for (var i = 0; i < game.getSize(); ++i) {
@@ -676,13 +693,13 @@ Object.extend(UnderRule.prototype, {
 
         return changed;
     },
-    equals  :function (rule) {
+    equals   : function (rule) {
         if (rule.type() !== this.type()) {
             return false;
         }
         return (rule.row1 === this.row1) && (rule.row2 === this.row2) && (rule.col === this.col);
     },
-    draw    :function (box) {
+    draw     : function (box) {
         var table = Element.extend(document.createElement('table'));
         box.insert(table);
         table.cellSpacing = 0;
@@ -702,8 +719,8 @@ Object.extend(UnderRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
 
         tr = Element.extend(document.createElement('tr'));
         tbody.insert(tr);
@@ -715,8 +732,8 @@ Object.extend(UnderRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row2 + 1) + (this.value2 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
     }
 });
 
@@ -724,10 +741,10 @@ NearRule = function (data) {
     this.generate(data);
 };
 Object.extend(NearRule.prototype, {
-    type    :function () {
+    type     : function () {
         return 'near';
     },
-    generate:function (data) {
+    generate : function (data) {
         this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.col1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
@@ -736,7 +753,7 @@ Object.extend(NearRule.prototype, {
         this.value1 = data.getValue(this.row1, this.col1);
         this.value2 = data.getValue(this.row2, this.col2);
     },
-    apply   :function (game) {
+    apply    : function (game) {
         var changed = false;
         var iapply = function (game, j, i1, i2, v1, v2) {
             var left, right;
@@ -756,14 +773,14 @@ Object.extend(NearRule.prototype, {
         }
         return changed;
     },
-    equals  :function (rule) {
+    equals   : function (rule) {
         if (rule.type() !== this.type()) {
             return false;
         }
         return ((rule.row1 === this.row1) && (rule.col1 === this.col1) && (rule.row2 === this.row2) && (rule.col2 === this.col2)) ||
                ((rule.row2 === this.row1) && (rule.col2 === this.col1) && (rule.row1 === this.row2) && (rule.col1 === this.col2));
     },
-    draw    :function (box) {
+    draw     : function (box) {
         var table = Element.extend(document.createElement('table'));
         box.insert(table);
         table.cellPadding = 0;
@@ -783,8 +800,8 @@ Object.extend(NearRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -793,7 +810,7 @@ Object.extend(NearRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
+        img.setStyle({width : '48px', height : '48px'});
         img.src = 'images/near.gif';
 
         td = Element.extend(document.createElement('td'));
@@ -803,8 +820,8 @@ Object.extend(NearRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row2 + 1) + (this.value2 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
     }
 });
 
@@ -812,10 +829,10 @@ DirectionRule = function (data) {
     this.generate(data);
 };
 Object.extend(DirectionRule.prototype, {
-    type    :function () {
+    type     : function () {
         return 'direction';
     },
-    generate:function (data) {
+    generate : function (data) {
         this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.col1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
@@ -831,7 +848,7 @@ Object.extend(DirectionRule.prototype, {
         this.value1 = data.getValue(this.row1, this.col1);
         this.value2 = data.getValue(this.row2, this.col2);
     },
-    apply   :function (game) {
+    apply    : function (game) {
         var changed = false;
 
         var i;
@@ -856,13 +873,13 @@ Object.extend(DirectionRule.prototype, {
 
         return changed;
     },
-    equals  :function (rule) {
+    equals   : function (rule) {
         if (rule.type() !== this.type()) {
             return false;
         }
         return (rule.row1 === this.row1) && (rule.col1 === this.col1) && (rule.row2 === this.row2) && (rule.col2 === this.col2);
     },
-    draw    :function (box) {
+    draw     : function (box) {
         var table = Element.extend(document.createElement('table'));
         box.insert(table);
         table.cellPadding = 0;
@@ -882,8 +899,8 @@ Object.extend(DirectionRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -892,7 +909,7 @@ Object.extend(DirectionRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
+        img.setStyle({width : '48px', height : '48px'});
         img.src = 'images/direction.gif';
 
         td = Element.extend(document.createElement('td'));
@@ -902,8 +919,8 @@ Object.extend(DirectionRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row2 + 1) + (this.value2 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
     }
 });
 
@@ -911,10 +928,10 @@ BetweenRule = function (data) {
     this.generate(data);
 };
 Object.extend(BetweenRule.prototype, {
-    type    :function () {
+    type     : function () {
         return 'between';
     },
-    generate:function (data) {
+    generate : function (data) {
         this.row = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.row1 = Math.floor(Math.random() * data.getSize()) % data.getSize();
         this.row2 = Math.floor(Math.random() * data.getSize()) % data.getSize();
@@ -927,7 +944,7 @@ Object.extend(BetweenRule.prototype, {
         this.value1 = data.getValue(this.row1, this.col - delta);
         this.value2 = data.getValue(this.row2, this.col + delta);
     },
-    apply   :function (game) {
+    apply    : function (game) {
         var changed = false;
 
         if (game.isPossible(this.row, 0, this.value)) {
@@ -981,14 +998,14 @@ Object.extend(BetweenRule.prototype, {
 
         return changed;
     },
-    equals  :function (rule) {
+    equals   : function (rule) {
         if (rule.type() !== this.type()) {
             return false;
         }
         return (rule.row === this.row) && (rule.col === this.col) &&
                (((rule.row1 === this.row1) && (rule.row2 === this.row2)) || ((rule.row1 === this.row2) && (rule.row2 === this.row1)));
     },
-    draw    :function (box) {
+    draw     : function (box) {
         var table = Element.extend(document.createElement('table'));
         box.insert(table);
         table.cellPadding = 0;
@@ -1008,8 +1025,8 @@ Object.extend(BetweenRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row1 + 1) + (this.value1 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -1018,8 +1035,8 @@ Object.extend(BetweenRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row + 1) + (this.value + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row + 1) % 10) + ((this.value + 1) % 10) + '.gif';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -1028,13 +1045,13 @@ Object.extend(BetweenRule.prototype, {
         img = Element.extend(document.createElement('img'));
         td.insert(img);
 
-        img.setStyle({width:'48px', height:'48px'});
-        img.src = 'images/' + (this.row2 + 1) + (this.value2 + 1) + '.gif';
+        img.setStyle({width : '48px', height : '48px'});
+        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
     }
 });
 
 Rule = {
-    generate:function (data) {
+    generate : function (data) {
         switch (Math.floor(Math.random() * 14)) {
             case 0:
             case 1:
@@ -1067,19 +1084,19 @@ Solver = function (game) {
 };
 
 Object.extend(Solver.prototype, {
-    addRule:function (rule) {
+    addRule : function (rule) {
         this.rules.push(rule);
     },
 
-    addRules:function (rules) {
+    addRules : function (rules) {
         this.rules = this.rules.concat(rules);
     },
 
-    getRules:function () {
+    getRules : function () {
         return this.rules;
     },
 
-    solve:function () {
+    solve : function () {
         var applied;
         do {
             applied = false;
@@ -1091,7 +1108,7 @@ Object.extend(Solver.prototype, {
         return this.isSolved();
     },
 
-    isSolved:function () {
+    isSolved : function () {
         return this.game.isSolved();
     }
 });

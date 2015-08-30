@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<?php
+/**
+ * Created by JetBrains PhpStorm.
+ * @author Tyutyunkov VE
+ */
+
+$size = isset($_REQUEST['size']) ? min(9, max(3, intval($_REQUEST['size']))) : 6;
+
+// TODO
+//$size = 6;
+?>
+<html>
+<head>
+    <title>Einstein</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script type="text/javascript" src="js/prototype.js"></script>
+    <script type="text/javascript" src="js/EinsteinController.js"></script>
+</head>
+<body onload="new EinsteinController(<?=$size?>);" oncontextmenu="return false;">
+<div id="einstein-menu-box" style="margin: 0; display: block;">
+    <p id="info" style="margin: 0">&nbsp;</p>
+    <a href="#" id="new" style="margin: 0 10px;">Новая игра</a>
+    <a href="#" id="pause" style="margin: 0 10px;">Пауза</a>
+    <a href="#" id="test" style="display: none;">test</a>
+<!--    <a href="#" id="new" style="margin: 0 10px;">Новая игра</a>-->
+<!--    <a href="#" id="hidden" style="margin: 0 10px; display: none;">Скрытые</a>-->
+<!--    <a href="#" id="test" style="display: none;">test</a>-->
+</div>
+<div id="einstein-main-box" style="margin:0;">
+    <div style="display: table-cell;">
+        <table cellpadding="0" cellspacing="3px" border="1">
+            <tbody id="einstein-panel"></tbody>
+        </table>
+    </div>
+    <div style="padding-left: 15px; display:  table-cell; vertical-align: top;">
+        <div id="einstein-horizontal-rules"></div>
+        <br clear="all"/>
+
+        <div id="einstein-vertical-rules"></div>
+    </div>
+</div>
+</body>
+</html>
