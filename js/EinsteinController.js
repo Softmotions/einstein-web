@@ -272,6 +272,7 @@ Object.extend(GameController.prototype, {
 
         if (this.data.getValue(i, j) != k) {
             this.stop();
+            return;
         }
 
         --this.count;
