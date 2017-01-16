@@ -469,7 +469,7 @@ Object.extend(ViewController.prototype, {
                     itd.insert(iimg);
 
                     iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
-                    iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
+                    iimg.src = 'images/item' + (i + 1) + (k + 1) + '.png';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
                         return function (event) {
@@ -494,7 +494,7 @@ Object.extend(ViewController.prototype, {
                     itd.insert(iimg);
 
                     iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
-                    iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
+                    iimg.src = 'images/item' + (i + 1) + (k + 1) + '.png';
 
                     itd.onmousedown = (function (scope, ii, ij, ik) {
                         return function (event) {
@@ -520,7 +520,7 @@ Object.extend(ViewController.prototype, {
                         itd.insert(iimg);
 
                         iimg.setStyle({width : (SIZES.hint) + 'px', height : (SIZES.hint) + 'px'});
-                        iimg.src = 'images/' + (i + 1) + (k + 1) + '.gif';
+                        iimg.src = 'images/item' + (i + 1) + (k + 1) + '.png';
 
                         itd.onmousedown = (function (scope, ii, ij, ik) {
                             return function (event) {
@@ -578,7 +578,7 @@ Object.extend(ViewController.prototype, {
 
     onSet : function (i, j, k) {
         this.hints[i][j].view.hide();
-        this.cells[i][j].src = 'images/' + ((i + 1) % 10) + ((k + 1) % 10) + '.gif';
+        this.cells[i][j].src = 'images/item' + ((i + 1) % 10) + ((k + 1) % 10) + '.png';
         this.cells[i][j].show();
     },
 
@@ -721,7 +721,7 @@ Object.extend(UnderRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.png';
 
         tr = Element.extend(document.createElement('tr'));
         tbody.insert(tr);
@@ -734,7 +734,7 @@ Object.extend(UnderRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.png';
     }
 });
 
@@ -802,7 +802,7 @@ Object.extend(NearRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -812,7 +812,7 @@ Object.extend(NearRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/near.gif';
+        img.src = 'images/near.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -822,7 +822,7 @@ Object.extend(NearRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.png';
     }
 });
 
@@ -901,7 +901,7 @@ Object.extend(DirectionRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -911,7 +911,7 @@ Object.extend(DirectionRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/direction.gif';
+        img.src = 'images/direction.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -921,7 +921,7 @@ Object.extend(DirectionRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.png';
     }
 });
 
@@ -1027,7 +1027,7 @@ Object.extend(BetweenRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row1 + 1) % 10) + ((this.value1 + 1) % 10) + '.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -1037,7 +1037,7 @@ Object.extend(BetweenRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row + 1) % 10) + ((this.value + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row + 1) % 10) + ((this.value + 1) % 10) + '.png';
 
         td = Element.extend(document.createElement('td'));
         tr.insert(td);
@@ -1047,7 +1047,7 @@ Object.extend(BetweenRule.prototype, {
         td.insert(img);
 
         img.setStyle({width : '48px', height : '48px'});
-        img.src = 'images/' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.gif';
+        img.src = 'images/item' + ((this.row2 + 1) % 10) + ((this.value2 + 1) % 10) + '.png';
     }
 });
 
